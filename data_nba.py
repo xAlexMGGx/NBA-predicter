@@ -4,9 +4,9 @@ import pandas as pd
 
 
 def extract():
-    api_key = ...
+    api_key = eval(open('config.txt').read())['auth']
     player_stats = requests.get(
-        f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2022/MIA?key={api_key}').json()
+        f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/MIA?key={api_key}').json()
     return player_stats
 
 
