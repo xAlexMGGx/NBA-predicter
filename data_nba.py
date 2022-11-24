@@ -6,10 +6,7 @@ import pandas as pd
 def extract():
     api_key = ...
     player_stats = requests.get(
-        'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2022/MIA?key=38ef11def74d4f13a039690fa9cde9b4').json()
-    standings = requests.get('https://api.sportsdata.io/v3/nba/scores/json/Standings/2022?key=38ef11def74d4f13a039690fa9cde9b4').json()
-    with open('standings.json', 'w') as f:
-        json.dump(standings, f)
+        f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2022/MIA?key={api_key}').json()
     return player_stats
 
 
