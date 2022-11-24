@@ -110,7 +110,6 @@ def create_pdf(df):
     pdf.output('nba_stats.pdf', 'F')
     
 
-
 stats = extract()
 write_to_json_file(stats)
 df = transform(stats)
