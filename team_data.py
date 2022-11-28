@@ -6,9 +6,9 @@ from fpdf import FPDF
 
 def extract():
     api_key = eval(open('config.txt').read())['auth']
-    player_stats = requests.get(
-        f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/LAL?key={api_key}').json()
-    return player_stats
+    player_stats = requests.get(f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/LAL?key={api_key}').json()
+    standings = requests.get(f'https://api.sportsdata.io/v3/nba/scores/json/Standings/2022?key={api_key}').json()
+    return player_stats, standings
 
 
 def write_to_json_file(data):
@@ -16,12 +16,12 @@ def write_to_json_file(data):
         json.dump(data, f)
 
 
-def transform(data):
-    df = pd.DataFrame(data)
+def transform(data, standings):
+    # Transforming player stats
+    df_players = pd.DataFrame(data)
     interesting_columns = ['Position', 'Games', 'FantasyPoints', 'Minutes', 'TwoPointersMade', 'TwoPointersAttempted', 'TwoPointersPercentage', 'ThreePointersMade', 'ThreePointersAttempted', 'ThreePointersPercentage', 'FreeThrowsMade', 'FreeThrowsAttempted', 'FreeThrowsPercentage', 'OffensiveRebounds', 'DefensiveRebounds', 'Rebounds', 'Assists', 'Steals', 'BlockedShots', 'Turnovers', 'PersonalFouls', 'Points', 'PlayerEfficiencyRating']
-    # df = df.pivot_table(index=['Name'], values=interesting_columns, sort=False)
-    df = df.set_index('Name')
-    df = df[interesting_columns]
+    df_players = df_players.set_index('Name')
+    df_players = df_players[interesting_columns]
     column_names = {
         'Position': 'Pos',
         'Games': 'G',
@@ -47,14 +47,15 @@ def transform(data):
         'Points': 'Pts',
         'PlayerEfficiencyRating': 'Rtg'
     }
-    df.index.name = None
+    df_players.index.name = None
     for _ in range(len(interesting_columns)):
-        df.rename(columns=column_names, inplace=True)
+        df_players.rename(columns=column_names, inplace=True)
     # Change column names
-    df.sort_values(by=['FP'], ascending=False, inplace=True)
-    # with open('stats_nba.csv', 'w') as f:
-    #     df.to_csv(f)
-    return df
+    df_players.sort_values(by=['FP'], ascending=False, inplace=True)
+    # Transforming standings
+    df_standings = pd.DataFrame(standings)
+    
+    return df_players
 
 
 def create_pdf(df):
@@ -110,7 +111,7 @@ def create_pdf(df):
     pdf.output('nba_stats.pdf', 'F')
     
 
-stats = extract()
+stats, standings = extract()
 write_to_json_file(stats)
-df = transform(stats)
+df = transform(stats, standings)
 create_pdf(df)
