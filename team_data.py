@@ -14,7 +14,6 @@ def extract():
         f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/LAL?key={api_key}').json()
     standings = requests.get(
         f'https://api.sportsdata.io/v3/nba/scores/json/Standings/2023?key={api_key}').json()
-
     players = requests.get(f'https://api.sportsdata.io/v3/nba/scores/json/Players/LAL?key={api_key}').json()
     teams = requests.get(f'https://api.sportsdata.io/v3/nba/scores/json/teams?key={api_key}').json()
     return player_stats, standings, players, teams
@@ -109,10 +108,10 @@ def transform(data, standings, players):
     df_rnk_conf['Strk'] = df_rnk_conf['Strk'].str.replace('W-', 'L')
 
     # Obtaining player photos
-    if not os.path.exists('photos'):
-        os.mkdir('photos')
+    if not os.path.exists('player_photos'):
+        os.mkdir('player_photos')
     for player in players:
-        with open(f"photos/{player['FirstName']} {player['LastName']}.png", 'wb') as f:
+        with open(f"player_photos/{player['FirstName']} {player['LastName']}.png", 'wb') as f:
             f.write(requests.get(player['PhotoUrl']).content)
     return df_players, df_rnk_conf
 
@@ -159,7 +158,7 @@ def create_pdf(df, df2):
     pdf.ln()
     pdf.set_font('Arial', '', 5)
     for index, row in df.iterrows():
-        image = f"photos/{index}.png"
+        image = f"player_photos/{index}.png"
         # align image to right of cell with height 4
         pdf.cell(28, 4.5, index, border=1)
         pdf.image(image, pdf.get_x()-4, pdf.get_y()-0.2, h=4.3)
@@ -207,3 +206,13 @@ stats, standings, players, teams = extract()
 write_to_json_file(stats, standings, players, teams)
 df_stats, df_standings = transform(stats, standings, players)
 create_pdf(df_stats, df_standings)
+
+
+'''
+COSAS PARA METER EN EL PDF:
+
+- News
+- Injuries
+- nba gamenotes (https://www.nba.com/gamenotes/) ver ejemplo pdf
+
+'''
