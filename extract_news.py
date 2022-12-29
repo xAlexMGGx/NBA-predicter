@@ -23,14 +23,16 @@ def transform(url):
         titles = main_div.find_all('h4', {'class': 'widget-title teamLogo lakersbg'})
         for t in titles:
             if t.text not in interest_news_titles:
+                if len(interest_news_titles) >= 4:
+                    break
                 interest_news_titles.append(t.text)
         news = main_div.find_all('div', {'class': 'newsdeskContentEntry'})
         for n in news:
-            if re.search('Los Angeles Lakers', n.text) and n not in interest_news_content:
+            if re.search('agoLos Angeles Lakers', n.text) and n not in interest_news_content:
                 interest_news_content.append(n)
-            if len(interest_news_content) >= 5:
+            if len(interest_news_content) >= 4:
                 break
-        if len(interest_news_content) >= 5:
+        if len(interest_news_content) >= 4:
             break
     interest_news = []
     for i, n in enumerate(interest_news_content):
@@ -52,14 +54,19 @@ def transform(url):
             news_date = pd.to_datetime(news_date, unit='s')
         else:
             news_date = current_date
+            news_date = pd.to_datetime(news_date, unit='s')
         news_text = re.sub(date, '', news_text)
-        interest_news.append({'Title': interest_news_titles[i], 'Content': news_text, 'Date': news_date.strftime(format='%d/%m/%Y')})
+        author_start = re.search('--', news_text).span()[0]
+        author = news_text[author_start:]
+        author = re.sub(' \n', '', author)
+        news_text = re.sub(author, '', news_text)
+        author = re.sub(' - ', '\n- ', author)
+        interest_news.append({'Title': interest_news_titles[i], 'Content': news_text, 'Date': news_date.strftime(format='%d/%m/%Y'), 'Author': author})
         
     with open('news.json', 'w') as f:
         json.dump(interest_news, f)
         
 
-if __name__ == '__main__':
+def main():
     url = extract()
     transform(url)
-
