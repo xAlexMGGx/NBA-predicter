@@ -12,37 +12,37 @@ warnings.filterwarnings('ignore')
 
 
 TEAMS = {
-        'bos': 'Boston Celtics',
-        'bkn': 'Brooklyn Nets',
-        'ny': 'New York Knicks',
-        'phi': 'Philadelphia 76ers',
-        'tor': 'Toronto Raptors',
-        'chi': 'Chicago Bulls',
-        'cle': 'Cleveland Cavaliers',
-        'det': 'Detroit Pistons',
-        'ind': 'Indiana Pacers',
-        'mil': 'Milwaukee Bucks',
-        'den': 'Denver Nuggets',
-        'min': 'Minnesota Timberwolves',
-        'okc': 'Oklahoma City Thunder',
-        'por': 'Portland Trail Blazers',
-        'uth': 'Utah Jazz',
-        'gsw': 'Golden State Warriors',
-        'lac': 'Los Angeles Clippers',
-        'lal': 'Los Angeles Lakers',
-        'phx': 'Phoenix Suns',
-        'sac': 'Sacramento Kings',
-        'atl': 'Atlanta Hawks',
-        'cha': 'Charlotte Hornets',
-        'mia': 'Miami Heat',
-        'orl': 'Orlando Magic',
-        'was': 'Washington Wizards',
-        'dal': 'Dallas Mavericks',
-        'hou': 'Houston Rockets',
-        'mem': 'Memphis Grizzlies',
-        'no': 'New Orleans Pelicans',
-        'sa': 'San Antonio Spurs'
-    }
+    'bos': 'Boston Celtics',
+    'bkn': 'Brooklyn Nets',
+    'ny': 'New York Knicks',
+    'phi': 'Philadelphia 76ers',
+    'tor': 'Toronto Raptors',
+    'chi': 'Chicago Bulls',
+    'cle': 'Cleveland Cavaliers',
+    'det': 'Detroit Pistons',
+    'ind': 'Indiana Pacers',
+    'mil': 'Milwaukee Bucks',
+    'den': 'Denver Nuggets',
+    'min': 'Minnesota Timberwolves',
+    'okc': 'Oklahoma City Thunder',
+    'por': 'Portland Trail Blazers',
+    'uth': 'Utah Jazz',
+    'gsw': 'Golden State Warriors',
+    'lac': 'Los Angeles Clippers',
+    'lal': 'Los Angeles Lakers',
+    'phx': 'Phoenix Suns',
+    'sac': 'Sacramento Kings',
+    'atl': 'Atlanta Hawks',
+    'cha': 'Charlotte Hornets',
+    'mia': 'Miami Heat',
+    'orl': 'Orlando Magic',
+    'was': 'Washington Wizards',
+    'dal': 'Dallas Mavericks',
+    'hou': 'Houston Rockets',
+    'mem': 'Memphis Grizzlies',
+    'no': 'New Orleans Pelicans',
+    'sa': 'San Antonio Spurs'
+}
 
 
 def extract():
@@ -51,20 +51,9 @@ def extract():
         f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/LAL?key={api_key}').json()
     standings = requests.get(
         f'https://api.sportsdata.io/v3/nba/scores/json/Standings/2023?key={api_key}').json()
-    players = requests.get(f'https://api.sportsdata.io/v3/nba/scores/json/Players/LAL?key={api_key}').json()
-    teams = requests.get(f'https://api.sportsdata.io/v3/nba/scores/json/teams?key={api_key}').json()
-    return player_stats, standings, players, teams
-
-
-def write_to_json_file(data, standings, players, teams):
-    with open('nba_stats.json', 'w') as f:
-        json.dump(data, f)
-    with open('standings.json', 'w') as f:
-        json.dump(standings, f)
-    with open('players.json', 'w') as f:
-        json.dump(players, f)
-    with open('teams.json', 'w') as f:
-        json.dump(teams, f)
+    players = requests.get(
+        f'https://api.sportsdata.io/v3/nba/scores/json/Players/LAL?key={api_key}').json()
+    return player_stats, standings, players
 
 
 def transform(data, standings, players):
@@ -164,11 +153,11 @@ def transform(data, standings, players):
 def head_pdf(pdf: FPDF):
     pdf.set_xy(0.5, 0.5)
     pdf.set_font('Arial', 'B', 16)
-    pdf.set_fill_color(r=130, g=15, b=200)
+    pdf.set_fill_color(r=90, g=20, b=130)
     pdf.set_line_width(1)
     pdf.cell(209, 25, '', fill=1, border=1)
     pdf.set_xy(5, 4)
-    pdf.set_text_color(r=240, g=255, b=25)
+    pdf.set_text_color(r=255, g=190, b=0)
     pdf.cell(0, 10, 'Los Angeles Lakers', ln=1)
     pdf.set_font('Arial', 'B', 12)
     pdf.set_xy(5, 12)
@@ -191,12 +180,15 @@ def extract_score(date):
     url = f'https://www.nba.com/games?date={date}'
     response = requests.get(url).content
     soup = BeautifulSoup(response, 'html.parser')
-    main_div = soup.find('div', {'class': 'GamesView_gameCardsContainer__c_9fB'})
-    divs = main_div.find_all('a', {'class': 'GameCard_gcm__SKtfh GameCardMatchup_gameCardMatchup__H0uPe'})
+    main_div = soup.find(
+        'div', {'class': 'GamesView_gameCardsContainer__c_9fB'})
+    divs = main_div.find_all(
+        'a', {'class': 'GameCard_gcm__SKtfh GameCardMatchup_gameCardMatchup__H0uPe'})
     for div in divs:
         if re.search('lal', div['href']):
             interesting_div = div
-    scores = interesting_div.find_all('p', {'class': 'MatchupCardScore_p__dfNvc GameCardMatchup_matchupScoreCard__owb6w'})
+    scores = interesting_div.find_all(
+        'p', {'class': 'MatchupCardScore_p__dfNvc GameCardMatchup_matchupScoreCard__owb6w'})
     if re.search('lal-vs', interesting_div['href']):
         lal_score = scores[0].text
         vs_score = scores[1].text
@@ -205,10 +197,12 @@ def extract_score(date):
         vs_score = scores[0].text
     return {'LAL': lal_score, 'VS': vs_score}
 
+
 def extract_last_match_score():
     df = extract_matches(2023)
     # Extracting last match date
-    df_ended = df[df['Status'] != 'Scheduled'].sort_values(by='DateTime', ascending=True).reset_index(drop=True)
+    df_ended = df[df['Status'] != 'Scheduled'].sort_values(
+        by='DateTime', ascending=True).reset_index(drop=True)
     last_match = df_ended.iloc[-1]
     last_match_date = last_match['DateTime']
     home_team = last_match['HomeTeam']
@@ -221,7 +215,8 @@ def extract_last_match_score():
 def extract_next_match():
     df = extract_matches(2023)
     # Extracting next match date
-    df_scheduled = df[df['Status'] == 'Scheduled'].sort_values(by='DateTime', ascending=True).reset_index(drop=True)
+    df_scheduled = df[df['Status'] == 'Scheduled'].sort_values(
+        by='DateTime', ascending=True).reset_index(drop=True)
     next_match = df_scheduled.iloc[0]
     next_match_date = next_match['DateTime']
     home_team = next_match['HomeTeam']
@@ -234,15 +229,18 @@ def extract_last_two_matches_score():
     home_team = data[0][0]
     away_team = data[0][1]
     df = extract_matches(2023)
-    df_ended = df[df['Status'] != 'Scheduled'].sort_values(by='DateTime', ascending=True).reset_index(drop=True)
+    df_ended = df[df['Status'] != 'Scheduled'].sort_values(
+        by='DateTime', ascending=True).reset_index(drop=True)
     # Extracting last two matches score
     if home_team == 'LAL':
         vs_team = away_team
     else:
         vs_team = home_team
     df_2022 = extract_matches(2022)
-    last_matches = pd.concat([df_ended[df_ended['HomeTeam'] == vs_team], df_ended[df_ended['AwayTeam'] == vs_team], df_2022[df_2022['HomeTeam'] == vs_team], df_2022[df_2022['AwayTeam'] == vs_team]])
-    last_matches = last_matches.sort_values(by='DateTime', ascending=True).reset_index(drop=True)
+    last_matches = pd.concat([df_ended[df_ended['HomeTeam'] == vs_team], df_ended[df_ended['AwayTeam']
+                             == vs_team], df_2022[df_2022['HomeTeam'] == vs_team], df_2022[df_2022['AwayTeam'] == vs_team]])
+    last_matches = last_matches.sort_values(
+        by='DateTime', ascending=True).reset_index(drop=True)
     last_matches = last_matches.iloc[-2:]
     output = []
     for idx, row in last_matches.iterrows():
@@ -251,86 +249,100 @@ def extract_last_two_matches_score():
         output.append((score, [row['HomeTeam'], row['AwayTeam']], date))
     return output
 
+
 def create_pdf(df, df2):
     pdf = FPDF()
     pdf.auto_page_break = False
     # =================== PAGE 1 ===================
-    # pdf.add_page()
+    today = pd.to_datetime('today').strftime(format='%d-%m-%Y')
+    pdf.add_page()
+    pdf.image('team_logos/Los Angeles Lakers.png', x=20, y=15, w=170, h=170)
+    pdf.set_font('Arial', 'BU', 40)
+    pdf.set_text_color(r=0, g=0, b=0)
+    pdf.set_xy(5, 180)
+    pdf.cell(0, 10, 'Los Angeles Lakers', ln=1, align='C')
+    pdf.set_font('Arial', 'B', 30)
+    pdf.set_xy(5, 200)
+    pdf.cell(0, 5, 'Season 2022-2023', ln=1, align='C')
+    pdf.set_font('Arial', 'B', 20)
+    pdf.set_xy(5, 220)
+    pdf.cell(0, 5, f'Last update: {today}', ln=1, align='C')
+
 
 
     # =================== PAGE 2 ===================
-    # pdf.add_page()
-    # head_pdf(pdf)
-    # # Last match
-    # score, teams, date = extract_last_match_score()
-    # pdf.set_font('Arial', 'BU', 10)
-    # pdf.set_text_color(r=0, g=0, b=0)
-    # pdf.set_xy(5, 40)
-    # pdf.cell(0, 5, 'LAST MATCH', ln=1, align='C')
-    # pdf.image('team_logos/' + f'{TEAMS[teams[0].lower()]}' + '.png', x=30, y=50, w=30, h=30)
-    # pdf.image('team_logos/' + f'{TEAMS[teams[1].lower()]}' + '.png', x=150, y=50, w=30, h=30)
-    # pdf.set_y(65)
-    # pdf.set_font('Arial', 'B', 30)
-    # if teams[0] == 'LAL':
-    #     pdf.cell(0, 5, f'{score["LAL"]}' + ' '*5 + '-' + ' '*5 + f'{score["VS"]}', ln=1, align='C')
-    # else:
-    #     pdf.cell(0, 5, f'{score["VS"]}' + ' '*5 + '-' + ' '*5 + f'{score["LAL"]}', ln=1, align='C')
-    # pdf.set_font('Arial', 'B', 20)
-    # pdf.set_y(85)
-    # pdf.cell(0, 5, f'{teams[0]}' + ' '*55 + f'{teams[1]}', ln=1, align='C')
-    # pdf.set_font('Arial', '', 10)
-    # pdf.set_y(82)
-    # pdf.multi_cell(0, 5, f'{date}\nEND', align='C')
-    # pdf.set_y(48)
-    # pdf.cell(0, 50, '', border=1, ln=1)
-    
-    # # Updated player stats
-    # pdf.set_line_width(0.1)
-    # pdf.set_font('Arial', 'BU', 10)
-    # pdf.set_y(110)
-    # pdf.cell(0, 10, 'PLAYER STATS', ln=1, align='C')
-    # lengths = {
-    #     'Pos': 6,
-    #     'G': 5,
-    #     'FP': 8,
-    #     'Min': 7,
-    #     '2PM': 7,
-    #     '2PA': 7,
-    #     '2P%': 8,
-    #     '3PM': 7,
-    #     '3PA': 7,
-    #     '3P%': 6,
-    #     'FTM': 7,
-    #     'FTA': 7,
-    #     'FT%': 8,
-    #     'OffReb': 9,
-    #     'DefReb': 9,
-    #     'Reb': 7,
-    #     'Ast': 7,
-    #     'Stl': 6,
-    #     'Blk': 6,
-    #     'TO': 7,
-    #     'PF': 7,
-    #     'Pts': 7,
-    #     'Rtg': 6
-    # }
-    # pdf.set_font('Arial', 'B', 6)
-    # pdf.set_fill_color(r=130, g=15, b=200)
-    # pdf.set_text_color(r=240, g=255, b=25)
-    # pdf.cell(28, 8, 'Player', border=1, fill=1)
-    # for key, value in lengths.items():
-    #     pdf.cell(value, 8, key, border=1, fill=1)
-    # pdf.ln()
-    # pdf.set_font('Arial', '', 5)
-    # pdf.set_text_color(r=0, g=0, b=0)
-    # for index, row in df.iterrows():
-    #     image = f"player_photos/{index}.png"
-    #     pdf.cell(28, 7, index, border=1)
-    #     pdf.image(image, pdf.get_x()-6, pdf.get_y()-0.2, h=6.8)
-    #     for key, value in lengths.items():
-    #         pdf.cell(value, 7, str(row[key]), border=1)
-    #     pdf.ln()
-    # pdf.multi_cell(0, 2, '\n* Pos = Position, G = Games, FP = Fantasy Points, Min = Minutes, 2PM = Two Pointers Made, 2PA = Two Pointers Attempted, 2P% = Two Pointers Percentage, 3PM = Three Pointers Made, 3PA = Three Pointers Attempted, 3P% = Three Pointers Percentage, FTM = Free Throws Made, FTA = Free Throws Attempted, FT% = Free Throws Percentage, OffReb = Offensive Rebounds, DefReb = Defensive Rebounds, Reb = Rebounds, Ast = Assists, Stl = Steals, Blk = Blocks, TO = Turnovers, PF = Personal Fouls, Pts = Points, Rtg = Player Efficiency Rating')
+    pdf.add_page()
+    head_pdf(pdf)
+    # Last match
+    score, teams, date = extract_last_match_score()
+    pdf.set_font('Arial', 'BU', 10)
+    pdf.set_text_color(r=0, g=0, b=0)
+    pdf.set_xy(5, 40)
+    pdf.cell(0, 5, 'LAST MATCH', ln=1, align='C')
+    pdf.image('team_logos/' + f'{TEAMS[teams[0].lower()]}' + '.png', x=30, y=50, w=30, h=30)
+    pdf.image('team_logos/' + f'{TEAMS[teams[1].lower()]}' + '.png', x=150, y=50, w=30, h=30)
+    pdf.set_y(65)
+    pdf.set_font('Arial', 'B', 30)
+    if teams[0] == 'LAL':
+        pdf.cell(0, 5, f'{score["LAL"]}' + ' '*5 + '-' + ' '*5 + f'{score["VS"]}', ln=1, align='C')
+    else:
+        pdf.cell(0, 5, f'{score["VS"]}' + ' '*5 + '-' + ' '*5 + f'{score["LAL"]}', ln=1, align='C')
+    pdf.set_font('Arial', 'B', 20)
+    pdf.set_y(85)
+    pdf.cell(0, 5, f'{teams[0]}' + ' '*55 + f'{teams[1]}', ln=1, align='C')
+    pdf.set_font('Arial', '', 10)
+    pdf.set_y(82)
+    pdf.multi_cell(0, 5, f'{date}\nEND', align='C')
+    pdf.set_y(48)
+    pdf.cell(0, 50, '', border=1, ln=1)
+
+    # Updated player stats
+    pdf.set_line_width(0.1)
+    pdf.set_font('Arial', 'BU', 10)
+    pdf.set_y(110)
+    pdf.cell(0, 10, 'PLAYER STATS', ln=1, align='C')
+    lengths = {
+        'Pos': 6,
+        'G': 5,
+        'FP': 8,
+        'Min': 7,
+        '2PM': 7,
+        '2PA': 7,
+        '2P%': 8,
+        '3PM': 7,
+        '3PA': 7,
+        '3P%': 6,
+        'FTM': 7,
+        'FTA': 7,
+        'FT%': 8,
+        'OffReb': 9,
+        'DefReb': 9,
+        'Reb': 7,
+        'Ast': 7,
+        'Stl': 6,
+        'Blk': 6,
+        'TO': 7,
+        'PF': 7,
+        'Pts': 7,
+        'Rtg': 6
+    }
+    pdf.set_font('Arial', 'B', 6)
+    pdf.set_fill_color(r=90, g=20, b=130)
+    pdf.set_text_color(r=255, g=190, b=0)
+    pdf.cell(28, 8, 'Player', border=1, fill=1)
+    for key, value in lengths.items():
+        pdf.cell(value, 8, key, border=1, fill=1)
+    pdf.ln()
+    pdf.set_font('Arial', '', 5)
+    pdf.set_text_color(r=0, g=0, b=0)
+    for index, row in df.iterrows():
+        image = f"player_photos/{index}.png"
+        pdf.cell(28, 7, index, border=1)
+        pdf.image(image, pdf.get_x()-6, pdf.get_y()-0.2, h=6.8)
+        for key, value in lengths.items():
+            pdf.cell(value, 7, str(row[key]), border=1)
+        pdf.ln()
+    pdf.multi_cell(0, 2, '\n* Pos = Position, G = Games, FP = Fantasy Points, Min = Minutes, 2PM = Two Pointers Made, 2PA = Two Pointers Attempted, 2P% = Two Pointers Percentage, 3PM = Three Pointers Made, 3PA = Three Pointers Attempted, 3P% = Three Pointers Percentage, FTM = Free Throws Made, FTA = Free Throws Attempted, FT% = Free Throws Percentage, OffReb = Offensive Rebounds, DefReb = Defensive Rebounds, Reb = Rebounds, Ast = Assists, Stl = Steals, Blk = Blocks, TO = Turnovers, PF = Personal Fouls, Pts = Points, Rtg = Player Efficiency Rating')
 
     # =================== PAGE 3 ===================
     pdf.add_page()
@@ -339,8 +351,8 @@ def create_pdf(df, df2):
     pdf.set_line_width(0.1)
     # Standings
     pdf.set_font('Arial', 'BU', 10)
-    pdf.set_xy(5, 40)
-    pdf.cell(143, 10, 'STANDINGS', ln=1, align='C')
+    pdf.set_y(35)
+    pdf.cell(128, 10, 'STANDINGS', ln=1, align='C')
     lengths = {
         'W': 5,
         'L': 5,
@@ -370,20 +382,21 @@ def create_pdf(df, df2):
         i += 1
         pdf.cell(23*1.5, 4*1.5, index, border=1, fill=fill)
         for key, value in lengths.items():
-            pdf.cell(value*1.5, 4*1.5, str(row[key]), border=1, align='C', fill=fill)
+            pdf.cell(value*1.5, 4*1.5,
+                     str(row[key]), border=1, align='C', fill=fill)
         pdf.ln()
     pdf.multi_cell(130, 3, '\n* W = Wins, L = Losses, Pct = Percentage, GB = Games Back, Conf = Conference Record, Home = Home Record, Away = Away Record, L10 = Last 10 Games Record, Strk = Streak')
 
     # News
     with open('news.json', 'r') as f:
         news = json.load(f)
-    pdf.set_xy(148, 38)
-    pdf.set_fill_color(r=240, g=240, b=60)
-    pdf.cell(54, 240, '', fill=1)
+    pdf.set_xy(148, 33)
+    pdf.set_fill_color(r=255, g=190, b=0)
+    pdf.cell(54, 253, '', fill=1)
     pdf.set_font('Times', 'BIU', 10)
-    pdf.set_xy(150, 40)
-    pdf.set_fill_color(r=130, g=15, b=200)
-    pdf.set_text_color(r=240, g=255, b=25)
+    pdf.set_xy(150, 35)
+    pdf.set_fill_color(r=90, g=20, b=130)
+    pdf.set_text_color(r=255, g=190, b=0)
     pdf.cell(0, 10, 'LATEST NEWS', ln=1, align='C', fill=1)
     pdf.set_text_color(r=0, g=0, b=0)
     pdf.set_font('Arial', 'B', 6)
@@ -412,15 +425,62 @@ def create_pdf(df, df2):
         pdf.set_x(150)
         pdf.cell(0, 3, '_________________________________________', ln=1)
         pdf.ln(2)
-    
+
     # Next match
     teams, date = extract_next_match()
-
+    pdf.set_font('Arial', 'BU', 10)
+    pdf.set_text_color(r=0, g=0, b=0)
+    pdf.set_y(165)
+    pdf.cell(128, 5, 'NEXT MATCH', ln=1, align='C')
+    pdf.image('team_logos/' + f'{TEAMS[teams[0].lower()]}' + '.png', x=25, y=175, w=20, h=20)
+    pdf.image('team_logos/' + f'{TEAMS[teams[1].lower()]}' + '.png', x=103, y=175, w=20, h=20)
+    pdf.set_font('Arial', '', 15)
+    pdf.set_y(185)
+    pdf.cell(128, 5, date, align='C')
+    # METER DEBAJO DE ESTO LAS CUOTAS DE LA CASA DE APUESTAS =========================================
+    pdf.set_font('Arial', 'B', 20)
+    pdf.set_y(200)
+    pdf.cell(128, 5, f'{teams[0]}' + ' '*32 + f'{teams[1]}', ln=1, align='C')
+    pdf.set_y(170)
+    pdf.cell(128, 45, '', border=1, ln=1)
 
     # Last matches between the two teams
     matches = extract_last_two_matches_score()
     score1, teams1, date1 = matches[0]
     score2, teams2, date2 = matches[1]
+    pdf.set_font('Arial', 'BU', 10)
+    pdf.set_text_color(r=0, g=0, b=0)
+    pdf.set_y(220)
+    pdf.cell(128, 5, 'LAST TWO MATCHES BETWEEN THESE TEAMS', ln=1, align='C')
+    pdf.image('team_logos/' + f'{TEAMS[teams1[0].lower()]}' + '.png', x=15, y=230, w=15, h=15)
+    pdf.image('team_logos/' + f'{TEAMS[teams1[1].lower()]}' + '.png', x=54, y=230, w=15, h=15)
+    pdf.image('team_logos/' + f'{TEAMS[teams2[0].lower()]}' + '.png', x=79, y=230, w=15, h=15)
+    pdf.image('team_logos/' + f'{TEAMS[teams2[1].lower()]}' + '.png', x=118, y=230, w=15, h=15)
+    pdf.set_xy(10,237)
+    pdf.set_font('Arial', 'B', 12)
+    if teams1[0] == 'LAL':
+        pdf.cell(64, 5, f'{score1["LAL"]}' + ' - ' + f'{score1["VS"]}', ln=1, align='C')
+    else:
+        pdf.cell(64, 5, f'{score1["VS"]}' + ' - ' + f'{score1["LAL"]}', ln=1, align='C')
+    pdf.set_xy(74,237)
+    if teams2[0] == 'LAL':
+        pdf.cell(64, 5, f'{score2["LAL"]}' + ' - ' + f'{score2["VS"]}', ln=1, align='C')
+    else:
+        pdf.cell(64, 5, f'{score2["VS"]}' + ' - ' + f'{score2["LAL"]}', ln=1, align='C')
+    pdf.set_font('Arial', 'B', 15)
+    pdf.set_xy(10, 247)
+    pdf.cell(64, 5, f'{teams1[0]}' + ' '*20 + f'{teams1[1]}', ln=1, align='C')
+    pdf.set_xy(74, 247)
+    pdf.cell(64, 5, f'{teams2[0]}' + ' '*20 + f'{teams2[1]}', ln=1, align='C')
+    pdf.set_font('Arial', '', 7)
+    pdf.set_xy(10, 245)
+    pdf.multi_cell(64, 5, f'{date1}\nEND', align='C')
+    pdf.set_xy(74.5, 245)
+    pdf.multi_cell(64, 5, f'{date2}\nEND', align='C')
+    pdf.set_xy(10, 228)
+    pdf.cell(63.5, 33, '', border=1, ln=1)
+    pdf.set_xy(74, 228)
+    pdf.cell(63.5, 33, '', border=1, ln=1)
 
     # =================== OUTPUT ===================
     pdf.output('nba_stats.pdf', 'F')
@@ -463,9 +523,9 @@ def create_pdf_beta(df, df2):
     }
     pdf.set_font('Arial', 'B', 6)
     # pdf.set_text_color(r=200, g=25, b=255)
-    # pdf.set_fill_color(r=240, g=255, b=25)
-    pdf.set_fill_color(r=130, g=15, b=200)
-    pdf.set_text_color(r=240, g=255, b=25)
+    # pdf.set_fill_color(r=255, g=190, b=0)
+    pdf.set_fill_color(r=90, g=20, b=130)
+    pdf.set_text_color(r=255, g=190, b=0)
     pdf.cell(28, 8, 'Player', border=1, fill=1)
     for key, value in lengths.items():
         pdf.cell(value, 8, key, border=1, fill=1)
@@ -532,8 +592,8 @@ def create_pdf_beta(df, df2):
     pdf.cell(54, 225, '', fill=1)
     pdf.set_font('Times', 'BIU', 10)
     pdf.set_xy(150, 30)
-    pdf.set_fill_color(r=130, g=15, b=200)
-    pdf.set_text_color(r=240, g=255, b=25)
+    pdf.set_fill_color(r=90, g=20, b=130)
+    pdf.set_text_color(r=255, g=190, b=0)
     pdf.cell(0, 10, 'LATEST NEWS', ln=1, align='C', fill=1)
     pdf.set_text_color(r=0, g=0, b=0)
     for new in news:
@@ -560,15 +620,12 @@ def create_pdf_beta(df, df2):
         pdf.cell(0, 3, '_________________________________________', ln=1)
         pdf.ln(2)
 
-
     pdf.output('nba_stats.pdf', 'F')
 
 
 def main():
     # Extracting data
-    stats, standings, players, teams = extract()
-    # Writing info to json files (for debugging purposes)
-    write_to_json_file(stats, standings, players, teams)
+    stats, standings, players = extract()
     # Write news to json file
     extract_news.main()
     # Transforming data
@@ -579,9 +636,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # create_pdf(1,2)
-    # main()
-    extract_next_match()
+    main()
 
 '''
 COSAS PARA METER EN EL PDF:
