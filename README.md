@@ -1,5 +1,5 @@
 # IMPORTANT
-In order to run this code, the user must have access to the API used, which involves having an api-key. If not, the program will just show the following message: _Could not find api-key_.
+In order to run this code, the user must have access to the API used, which involves having an api-key. If not, the program will raise a _ValueError_ with the following message: _"Please provide a valid API key"_.
 In case of having access, the user must introduce the api-key in the _config.txt_ file as shown below:
 ```
 {'auth': '<api-key>'}

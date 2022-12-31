@@ -47,6 +47,8 @@ TEAMS = {
 
 def extract():
     api_key = eval(open('config.txt').read())['auth']
+    if api_key == '':
+        raise ValueError('Please provide a valid API key')
     player_stats = requests.get(
         f'https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStatsByTeam/2023/LAL?key={api_key}').json()
     standings = requests.get(
