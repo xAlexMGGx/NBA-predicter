@@ -12,6 +12,8 @@ This part will use both webscraping and API data collection to obtain relevant d
 - extract_news.py
 - team_data.py
 
+It will only be necessary to run _team_data.py_ in order to generate the PDF with all de relevant information.
+
 In order to run both of them, the following libraries must be installed:
 - beautifulsoup4
 - fpdf
