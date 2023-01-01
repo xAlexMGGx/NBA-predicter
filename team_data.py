@@ -488,164 +488,21 @@ def create_pdf(df, df2):
     pdf.output('nba_stats.pdf', 'F')
 
 
-def create_pdf_beta(df, df2):
-    pdf = FPDF()
-    # Player_stats
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 16)
-    pdf.cell(40, 10, 'Los Angeles Lakers', ln=2)
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 10, 'Season 2022-2023', ln=1)
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(40, 10, 'Player stats', ln=1)
-    lengths = {
-        'Pos': 6,
-        'G': 5,
-        'FP': 8,
-        'Min': 7,
-        '2PM': 7,
-        '2PA': 7,
-        '2P%': 8,
-        '3PM': 7,
-        '3PA': 7,
-        '3P%': 6,
-        'FTM': 7,
-        'FTA': 7,
-        'FT%': 8,
-        'OffReb': 9,
-        'DefReb': 9,
-        'Reb': 7,
-        'Ast': 7,
-        'Stl': 6,
-        'Blk': 6,
-        'TO': 7,
-        'PF': 7,
-        'Pts': 7,
-        'Rtg': 6
-    }
-    pdf.set_font('Arial', 'B', 6)
-    # pdf.set_text_color(r=200, g=25, b=255)
-    # pdf.set_fill_color(r=255, g=190, b=0)
-    pdf.set_fill_color(r=90, g=20, b=130)
-    pdf.set_text_color(r=255, g=190, b=0)
-    pdf.cell(28, 8, 'Player', border=1, fill=1)
-    for key, value in lengths.items():
-        pdf.cell(value, 8, key, border=1, fill=1)
-    pdf.ln()
-    pdf.set_font('Arial', '', 5)
-    pdf.set_text_color(r=0, g=0, b=0)
-    for index, row in df.iterrows():
-        image = f"player_photos/{index}.png"
-        # align image to right of cell with height 4
-        pdf.cell(28, 7, index, border=1)
-        pdf.image(image, pdf.get_x()-6, pdf.get_y()-0.2, h=6.8)
-        for key, value in lengths.items():
-            pdf.cell(value, 7, str(row[key]), border=1)
-        pdf.ln()
-    pdf.multi_cell(0, 2, '\n* Pos = Position, G = Games, FP = Fantasy Points, Min = Minutes, 2PM = Two Pointers Made, 2PA = Two Pointers Attempted, 2P% = Two Pointers Percentage, 3PM = Three Pointers Made, 3PA = Three Pointers Attempted, 3P% = Three Pointers Percentage, FTM = Free Throws Made, FTA = Free Throws Attempted, FT% = Free Throws Percentage, OffReb = Offensive Rebounds, DefReb = Defensive Rebounds, Reb = Rebounds, Ast = Assists, Stl = Steals, Blk = Blocks, TO = Turnovers, PF = Personal Fouls, Pts = Points, Rtg = Player Efficiency Rating')
-
-    # Standings
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 16)
-    pdf.cell(40, 10, 'Los Angeles Lakers', ln=2)
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 10, 'Season 2022-2023', ln=1)
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(40, 10, 'Standings', ln=1)
-    lengths = {
-        'W': 5,
-        'L': 5,
-        'Pct': 8,
-        'GB': 6,
-        'Conf': 7,
-        'Home': 8,
-        'Away': 8,
-        'L10': 6,
-        'Strk': 6
-    }
-    pdf.set_font('Arial', 'B', 5)
-    pdf.cell(23, 8, 'Team', border=1)
-    for key, value in lengths.items():
-        pdf.cell(value, 8, key, border=1, align='C')
-    pdf.ln()
-    pdf.set_font('Arial', '', 5)
-    pdf.set_fill_color(r=190, g=190, b=190)
-    for index, row in df2.iterrows():
-        if index == 'Los Angeles Lakers':
-            fill = 1
-        else:
-            fill = 0
-        pdf.cell(23, 4, index, border=1, fill=fill)
-        for key, value in lengths.items():
-            pdf.cell(value, 4, str(row[key]), border=1, align='C', fill=fill)
-        pdf.ln()
-    pdf.multi_cell(0, 2, '\n* W = Wins, L = Losses, Pct = Percentage, GB = Games Back, Conf = Conference Record, Home = Home Record, Away = Away Record, L10 = Last 10 Games Record, Strk = Streak')
-
-    # News
-    with open('news.json', 'r') as f:
-        news = json.load(f)
-    pdf.add_page()
-    pdf.set_font('Arial', 'B', 16)
-    pdf.cell(40, 10, 'Los Angeles Lakers', ln=2)
-    pdf.set_font('Arial', 'B', 12)
-    pdf.cell(40, 10, 'Season 2022-2023', ln=1)
-    pdf.set_xy(148, 28)
-    pdf.set_fill_color(r=240, g=240, b=60)
-    pdf.cell(54, 225, '', fill=1)
-    pdf.set_font('Times', 'BIU', 10)
-    pdf.set_xy(150, 30)
-    pdf.set_fill_color(r=90, g=20, b=130)
-    pdf.set_text_color(r=255, g=190, b=0)
-    pdf.cell(0, 10, 'LATEST NEWS', ln=1, align='C', fill=1)
-    pdf.set_text_color(r=0, g=0, b=0)
-    for new in news:
-        if re.search('\u2019', new['Title']):
-            new['Title'] = re.sub('\u2019', "'", new['Title'])
-        if re.search('\u2019', new['Content']):
-            new['Content'] = re.sub('\u2019', "'", new['Content'])
-        if re.search('\u2019', new['Author']):
-            new['Author'] = re.sub('\u2019', "'", new['Author'])
-        pdf.set_font('Arial', 'BI', 8)
-        pdf.set_x(150)
-        pdf.multi_cell(0, 3, '\n' + new['Title'])
-        pdf.set_font('Arial', '', 6)
-        pdf.set_text_color(r=150, g=150, b=150)
-        pdf.set_x(150)
-        pdf.cell(40, 4, new['Date'], ln=1)
-        pdf.set_text_color(r=0, g=0, b=0)
-        pdf.set_x(150)
-        pdf.multi_cell(0, 3, new['Content'])
-        pdf.multi_cell(0, 3, new['Author'], align='R')
-        pdf.ln(2)
-        pdf.set_font('Arial', 'B', 6)
-        pdf.set_x(150)
-        pdf.cell(0, 3, '_________________________________________', ln=1)
-        pdf.ln(2)
-
-    pdf.output('nba_stats.pdf', 'F')
-
-
 def main():
     # Extracting data
+    print('Extracting data...')
     stats, standings, players = extract()
     # Write news to json file
+    print('Extracting and writing news to json file...')
     extract_news.main()
     # Transforming data
+    print('Transforming data...')
     df_stats, df_standings = transform(stats, standings, players)
     # Creating pdf
-    # create_pdf_beta(df_stats, df_standings)
+    print('Creating pdf...')
     create_pdf(df_stats, df_standings)
 
 
 if __name__ == '__main__':
     main()
 
-'''
-COSAS PARA METER EN EL PDF:
-
-- News
-- Injuries
-- upcoming matches
-- nba gamenotes (https://www.nba.com/gamenotes/) ver ejemplo pdf
-
-'''
